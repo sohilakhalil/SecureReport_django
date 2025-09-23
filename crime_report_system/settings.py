@@ -56,6 +56,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "https://securereport.netlify.app",
     "http://localhost:5173",
     "http://localhost:5174",
 ]
