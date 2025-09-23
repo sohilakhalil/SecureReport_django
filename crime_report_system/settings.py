@@ -61,9 +61,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
 ]
 
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
+CSRF_TRUSTED_ORIGINS = [
+    "https://securereport.netlify.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
