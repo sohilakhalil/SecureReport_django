@@ -4,13 +4,6 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Report, CriminalInfo, Attachment
 from .serializers import ReportNestedSerializer, ReportTrackingSerializer
-from django.http import JsonResponse
-
-def my_view(request):
-    response = JsonResponse({"msg": "ok"})
-    response["Access-Control-Allow-Origin"] = "https://securereport.netlify.app"
-    return response
-
 
 
 class ReportCreateNestedView(generics.CreateAPIView):
