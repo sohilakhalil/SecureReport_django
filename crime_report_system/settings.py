@@ -61,6 +61,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True  # مؤقتًا بس للتجربة
+CORS_ALLOW_CREDENTIALS = True
+
 
 ROOT_URLCONF = 'crime_report_system.urls'
 
