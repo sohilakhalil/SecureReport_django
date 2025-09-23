@@ -26,7 +26,12 @@ SECRET_KEY = 'django-insecure-5qn2jp5e2u#^ll@gso19@%(6%3+gxqsdva)4#!(=yzmg%nvgf5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "salmakhalil.pythonanywhere.com",
+    "securereport.netlify.app",
+    "127.0.0.1",
+    "localhost",
+]
 
 
 # Application definition
@@ -57,11 +62,13 @@ MIDDLEWARE = [
 ]
 
 
-CORS_ALLOWED_ORIGINS = [
-    "https://securereport.netlify.app",
-    "http://localhost:5173",
-    "http://localhost:5174",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "https://securereport.netlify.app",
+#     "http://localhost:5173",
+#     "http://localhost:5174",
+# ]
+
+CORS_ALLOW_ALL_ORIGINS = True 
 
 CSRF_TRUSTED_ORIGINS = [
     "https://securereport.netlify.app",
@@ -69,17 +76,17 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
+# CORS_ALLOW_HEADERS = [
+#     "accept",
+#     "accept-encoding",
+#     "authorization",
+#     "content-type",
+#     "dnt",
+#     "origin",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# ]
 
 
 
