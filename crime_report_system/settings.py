@@ -82,6 +82,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
+
 ROOT_URLCONF = 'crime_report_system.urls'
 
 TEMPLATES = [
