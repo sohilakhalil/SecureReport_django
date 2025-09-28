@@ -1,104 +1,124 @@
-import json
-from rest_framework import generics, status
-from rest_framework.response import Response
+from rest_framework import generics, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Report, CriminalInfo, Attachment
-from .serializers import ReportNestedSerializer, ReportTrackingSerializer
+from rest_framework.response import Response
+from .models import Report
+from .serializers import ReportNestedSerializer, ReportTrackingSerializer, ReportViewerSerializer
+from .ml_model import predict_severity
 
+# ----------------------------- Helper ------------------------------------
+def is_active_user(user):
+    return user.is_authenticated and user.status == 'active'
 
-class ReportCreateNestedView(generics.CreateAPIView):
+# ----------------------------List & create reports--------------------------
+class ReportListCreateView(generics.ListCreateAPIView):
     """
     Create a new Report along with optional CriminalInfo and Attachments.
     Handles JSON parsing for criminals and differentiates audio/file attachments.
     """
-    queryset = Report.objects.all()
-    serializer_class = ReportNestedSerializer
     parser_classes = (MultiPartParser, FormParser)
 
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        if instance.report_details:
+            instance.severity = predict_severity(instance.report_details)
+            instance.save(update_fields=["severity"])
 
-        # Parse 'criminal_infos' from JSON string, default to empty list if invalid
-        criminal_infos = []
-        if "criminal_infos" in data:
-            try:
-                criminal_infos = json.loads(data["criminal_infos"])
-            except Exception:
-                criminal_infos = []
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.AllowAny()]  # => Open to everyone
+        return [permissions.IsAuthenticated()]  # => GET requires authentication
 
-        # Remove 'criminal_infos' from main data before saving the Report
-        data.pop("criminal_infos", None)
+    def get_serializer_class(self):
+        """
+        Use limited serializer for Viewer role, full serializer for Admin/Employee.
+        """
+        user = self.request.user
+        if user.is_authenticated and user.role == "Viewer":
+            return ReportViewerSerializer
+        return ReportNestedSerializer
 
-        # Convert latitude and longitude to float, fallback to None if invalid
-        for field in ["latitude", "longitude"]:
-            value = data.get(field)
-            if isinstance(value, list):
-                value = value[0]
-            try:
-                data[field] = float(value)
-            except (TypeError, ValueError):
-                data[field] = None
+    def get_queryset(self):
+        """
+        Return reports based on user role.
+        Admin/Employee: all reports.
+        Viewer: all reports (serializer limits fields).
+        Anonymous: none.
+        """
+        user = self.request.user
+        qs = Report.objects.exclude(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:500]
 
-        # Save main Report
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        report = serializer.save()
+        if not is_active_user(user):
+            return Report.objects.none()  # inactive or anonymous users see nothing
+        return qs
 
-        # Save CriminalInfo objects in bulk if any
-        criminal_objs = [
-            CriminalInfo(report=report, **criminal) for criminal in criminal_infos
-        ]
-        CriminalInfo.objects.bulk_create(criminal_objs)
-
-        # Save attachments, separating audio and other files
-        files = request.FILES.getlist("attachments")
-        attachments_to_create = []
-        for f in files:
-            filename = f.name.lower()
-            if "audio" in filename or filename.endswith((".mp3", ".wav", ".webm", ".ogg")):
-                attachments_to_create.append(Attachment(report=report, audio_recording=f))
-            else:
-                attachments_to_create.append(Attachment(report=report, file=f))
-        Attachment.objects.bulk_create(attachments_to_create)
-
-        # Return full Report data including nested criminals and attachments
-        report_data = ReportNestedSerializer(report, context={"request": request}).data
-        return Response(report_data, status=status.HTTP_201_CREATED)
-
-
-class ReportListView(generics.ListAPIView):
-    """List all reports, optionally including nested CriminalInfo and Attachments."""
-    queryset = Report.objects.all()
-    serializer_class = ReportNestedSerializer
-
-
-class ReportDetailView(generics.RetrieveAPIView):
-    """Retrieve a single report by ID with full details."""
-    queryset = Report.objects.all()
-    serializer_class = ReportNestedSerializer
-    lookup_field = "id"
-
-
-class ReportUpdateView(generics.UpdateAPIView):
+# -------------------------------Archived reports------------------------------------------
+class ReportArchiveListView(generics.ListAPIView):
     """
-    Update Report fields.
-    Currently only updates main Report data; nested CriminalInfo and Attachments
-    can be supported later if needed.
+    List reports that are archived (status solved/closed).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        user = self.request.user
+        if user.role == "Viewer":
+            return ReportViewerSerializer
+        return ReportNestedSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if not is_active_user(user):
+            return Report.objects.none()
+        return Report.objects.filter(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:500]
+
+# -----------------------------Retrieve, update, or delete a report----------------------------
+class ReportRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a specific report by id.
     """
     queryset = Report.objects.all()
-    serializer_class = ReportNestedSerializer
     lookup_field = "id"
 
+    def get_serializer_class(self):
+        user = self.request.user
+        if user.role == "Viewer":
+            return ReportViewerSerializer
+        return ReportNestedSerializer
 
-class ReportDeleteView(generics.DestroyAPIView):
-    """Delete a report by its ID."""
-    queryset = Report.objects.all()
-    serializer_class = ReportNestedSerializer
-    lookup_field = "id"
+    def get_permissions(self):
+        return [permissions.IsAuthenticated()]
+
+    def patch(self, request, *args, **kwargs):
+        """
+        Admin and Employee can update all fields.
+        Viewer cannot update.
+        """
+        user = request.user
+        if not is_active_user(user):
+            return Response({"detail": "Inactive user."}, status=status.HTTP_403_FORBIDDEN)
+        if user.role in ["Admin", "Employee"]:
+            return super().partial_update(request, *args, **kwargs)
+        return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
 
+    def delete(self, request, *args, **kwargs):
+        """
+        Admin and Employee can delete reports.
+        Viewer cannot delete.
+        """
+        user = request.user
+        if not is_active_user(user):
+            return Response({"detail": "Inactive user."}, status=status.HTTP_403_FORBIDDEN)
+        if user.role in ["Admin", "Employee"]:
+            return super().destroy(request, *args, **kwargs)
+        return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
+# ------------------------Track a report using tracking_code-----------------------
 class ReportTrackView(generics.RetrieveAPIView):
-    """Retrieve a report using its tracking_code."""
+    """
+    Retrieve a report using its tracking_code.
+    Used by anonymous users to track their report status.
+    """
     queryset = Report.objects.all()
     serializer_class = ReportTrackingSerializer
     lookup_field = "tracking_code"
+    permission_classes = [permissions.AllowAny]  # => Open to everyone

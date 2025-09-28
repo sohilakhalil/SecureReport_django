@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +31,30 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+
+# REST_FRAMEWORK = {
+#     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+#     "PAGE_SIZE": 10,  # أو 100
+# }
+
+# AUTHENTICATION_BACKENDS = [
+#     "accounts.backends.EmailOrUsernameModelBackend",  # username OR email
+#     "django.contrib.auth.backends.ModelBackend",
+# ]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -36,6 +62,7 @@ INSTALLED_APPS = [
     'analytics',
     'rest_framework',  
     'reports',
+    'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

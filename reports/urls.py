@@ -1,29 +1,20 @@
 from django.urls import path
 from .views import (
-    ReportCreateNestedView,  #? => Unified form: create report + criminals + attachments
-    ReportListView,
-    ReportDetailView,
-    ReportUpdateView,
-    ReportDeleteView,
+    ReportListCreateView,
+    ReportRetrieveUpdateDestroyView,
     ReportTrackView,
+    ReportArchiveListView,
 )
 
 urlpatterns = [
-    # Create a new report along with criminal info and attachments
-    path('reports/new/', ReportCreateNestedView.as_view(), name='report-create-nested'),
+    # GET list / POST create
+    path('reports/', ReportListCreateView.as_view(), name='report-list-create'),
 
-    # List all reports
-    path('reports/', ReportListView.as_view(), name='report-list'),
+    # GET detail / PATCH update / DELETE
+    path('reports/<int:id>/', ReportRetrieveUpdateDestroyView.as_view(), name='report-detail-update-delete'),
 
-    # Retrieve a single report in detail
-    path('reports/<int:id>/', ReportDetailView.as_view(), name='report-detail'),
-
-    # Update a report
-    path('reports/<int:id>/update/', ReportUpdateView.as_view(), name='report-update'),
-
-    # Delete a report
-    path('reports/<int:id>/delete/', ReportDeleteView.as_view(), name='report-delete'),
-
-    # Track a report using tracking_code
+    # Track report by tracking code
     path('reports/track/<str:tracking_code>/', ReportTrackView.as_view(), name='report-track'),
+
+    path('reports/archive/', ReportArchiveListView.as_view(), name='report-archive-list'),
 ]

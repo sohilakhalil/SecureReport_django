@@ -1,73 +1,80 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from django.http import JsonResponse
-from .utils import get_combined_reports_dataframe
+from .utils import get_db_reports_dataframe, filter_dataframe, get_kpis, get_charts, compute_recent_kpis, compute_recent_charts
 
+# ---------------------------- Custom Permission ----------------------------
+def is_active_user(user):
+    return user.is_authenticated and user.status == 'active'
 
-def filter_dataframe(df, year=None, location=None):
-    """Apply filters to the dataframe based on query params."""
-    if year:
-        df = df[df['incident_date'].dt.year == int(year)]
-    if location:
-        df = df[df['location'].str.contains(location, case=False)]
-    return df
-
-
-def get_kpis(df):
-    """Return KPIs from dataframe."""
-    if df.empty:
-        return {
-            "total_reports": 0,
-            "top_report_type": None,
-            "solved_percentage": 0,
-            "top_region": None
-        }
-
-    return {
-        "total_reports": len(df),
-        "top_report_type": df['report_type'].value_counts().idxmax(),
-        "solved_percentage": (df['case_status'] == "تم الحل").mean() * 100,
-        "top_region": df['location'].value_counts().idxmax()
-    }
-
-
-def get_charts(df):
-    """Return charts data from dataframe.
-    Charts include:
-        - monthly_reports: Line chart (number of reports per month)
-        - report_type_distribution: Bar chart (reports grouped by type)
-        - case_status_distribution: Donut chart (reports grouped by status)
-        - heatmap: Map chart (list of coordinates for reports)
-    """
-    if df.empty:
-        return {
-            "monthly_reports": {},
-            "report_type_distribution": {},
-            "case_status_distribution": {},
-            "heatmap": []
-        }
-
-    # Line chart: monthly reports
-    df['month'] = df['incident_date'].dt.to_period('M').astype(str)
-    monthly_counts = df['month'].value_counts().sort_index().to_dict()
-
-    return {
-        "monthly_reports": monthly_counts,  # => Line chart
-        "report_type_distribution": df['report_type'].value_counts().to_dict(),  # => Bar chart
-        "case_status_distribution": df['case_status'].value_counts().to_dict(),  # => Donut chart
-        "heatmap": df[['latitude', 'longitude']].dropna().to_dict(orient='records'),  # =>  Heatmap
-    }
-
+# ----------------------------- Classic Dashboard --------------------------------
+@api_view(['GET'])
 def dashboard_data(request):
-    df = get_combined_reports_dataframe()
+    """
+    Classic Dashboard API.
+    - Public 'site_stats' if user not authenticated or inactive
+    - Other KPIs/charts require active user
+    """
+    df = get_db_reports_dataframe()
+    df = filter_dataframe(df, year=request.GET.get("year"), location=request.GET.get("location"))
 
-    # Apply filters
-    df = filter_dataframe(
-        df,
-        year=request.GET.get("year"),
-        location=request.GET.get("location")
-    )
+    full_kpis = get_kpis(df)
 
+    user = request.user
+    if is_active_user(user):
+        return Response({
+            "kpis": full_kpis,
+            "charts": get_charts(df),
+        })
+    else:
+        # Public access returns empty KPIs/charts
+        return Response({
+            "kpis": {},
+            "charts": {},
+        })
+
+# --------------------------- Recent Dashboard ------------------------------------
+@api_view(['GET'])
+def dashboard_recent_data(request):
+    """
+    Recent Dashboard API.
+    - Only active users can see KPIs and charts
+    - Public access returns empty KPIs/charts
+    """
+    df = get_db_reports_dataframe()
+    df = filter_dataframe(df, year=request.GET.get("year"), location=request.GET.get("location"))
+    period = request.GET.get("period", "daily")
+
+    user = request.user
+    if is_active_user(user):
+        return Response({
+            "kpis": compute_recent_kpis(df),
+            "charts": compute_recent_charts(df, period)
+        })
+    else:
+        return Response({
+            "kpis": {},
+            "charts": {}
+        })
+
+# --------------------------------Public Site Stats -------------------------------------------------
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_site_stats(request):
+    """
+    Public site stats endpoint.
+    No authentication required.
+    Computes stats based on all reports.
+    """
+    df = get_db_reports_dataframe()
+    
     data = {
-        "kpis": get_kpis(df),
-        "charts": get_charts(df)
+        "site_stats": {
+            "received_reports": len(df[df['status'] == "تم استلام البلاغ"]),
+            "in_progress_reports": len(df[df['status'] == "قيد المعالجة"]),
+            "closed_reports": len(df[df['status'] == "تم الإغلاق"]),
+            "collaborating_entities": 20  # fixed value
+        }
     }
     return JsonResponse(data)
