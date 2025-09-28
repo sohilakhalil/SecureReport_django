@@ -85,7 +85,6 @@ def get_charts(df):
         "heatmap": df[['latitude', 'longitude']].dropna().to_dict(orient='records')
     }
 
-
 # -------------------------- Recent Dashboard Helpers ----------------------------------------
 def compute_recent_kpis(df):
     if df.empty:
@@ -108,7 +107,6 @@ def compute_recent_kpis(df):
         change = ((current - previous) / previous) * 100
         trend = "زيادة" if change > 0 else "انخفاض" if change < 0 else "لا تغيير"
         return round(abs(change), 2), trend
-
 
     # --- Total Reports KPI ---
     total_reports_value = len(df)
@@ -139,7 +137,6 @@ def compute_recent_kpis(df):
         "under_review": {"value": under_review_value, "change": under_change, "trend": under_trend},
         "critical_reports": {"value": critical_value, "change": critical_change, "trend": critical_trend},
     }
-
 
 def compute_recent_charts(df, period="daily"):
     if df.empty:
