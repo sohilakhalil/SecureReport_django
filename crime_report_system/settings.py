@@ -130,13 +130,14 @@ if os.getenv("DATABASE_URL"):
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "SecureReport",
+        "NAME": "railway", 
         "USER": "postgres",
-        "PASSWORD": "Salma.76@2525",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "PASSWORD": "rBIbkPIvkulZkNlzgMSmRomgrEteSveU",
+        "HOST": "nozomi.proxy.rlwy.net",
+        "PORT": "41446",
     }
 }
+
 
 
 # Password validation

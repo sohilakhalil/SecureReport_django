@@ -3,7 +3,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from .models import Report
 from .serializers import ReportNestedSerializer, ReportTrackingSerializer, ReportViewerSerializer
-from .ml_model import predict_severity
+# from .ml_model import predict_severity
 
 # ----------------------------- Helper ------------------------------------
 def is_active_user(user):
@@ -19,9 +19,12 @@ class ReportListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        if instance.report_details:
-            instance.severity = predict_severity(instance.report_details)
-            instance.save(update_fields=["severity"])
+        # ------------------ AI Model Part (Commented for GitHub) ------------------
+        # if instance.report_details:
+        #     from .ml_model import predict_severity
+        #     instance.severity = predict_severity(instance.report_details)
+        #     instance.save(update_fields=["severity"])
+        # --------------------------------------------------------------------------
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -45,7 +48,7 @@ class ReportListCreateView(generics.ListCreateAPIView):
         Anonymous: none.
         """
         user = self.request.user
-        qs = Report.objects.exclude(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:500]
+        qs = Report.objects.exclude(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:5]
 
         if not is_active_user(user):
             return Report.objects.none()  # inactive or anonymous users see nothing
@@ -68,7 +71,7 @@ class ReportArchiveListView(generics.ListAPIView):
         user = self.request.user
         if not is_active_user(user):
             return Report.objects.none()
-        return Report.objects.filter(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:500]
+        return Report.objects.filter(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:5]
 
 # -----------------------------Retrieve, update, or delete a report----------------------------
 class ReportRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):

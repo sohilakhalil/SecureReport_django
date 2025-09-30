@@ -12,7 +12,6 @@ def import_csv_to_reports(path):
         print(f"❌ Failed to read CSV: {e}")
         return
 
-    # حول التاريخ
     df["incident_date"] = pd.to_datetime(df["incident_date"], errors="coerce")
 
     created_count = 0
@@ -41,9 +40,6 @@ def import_csv_to_reports(path):
 # import_csv_to_reports(r"D:\summer2025\Digitopea\DIGITOPIA\backend\crime_report_system\analytics\data\fake_reports.csv")
 
 
-from reports.models import Report
-
-# تحديث كل البلاغات اللي status فيها "تم الاغلاق" لتصبح "تم الإغلاق"
-updated_count = Report.objects.filter(status="تم الاغلاق").update(status="تم الإغلاق")
-
-print(f"✅ Done! Updated {updated_count} reports.")
+# from reports.models import Report
+# updated_count = Report.objects.filter(status="تم الاغلاق").update(status="تم الإغلاق")
+# print(f"✅ Done! Updated {updated_count} reports.")
