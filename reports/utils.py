@@ -25,7 +25,7 @@ def import_csv_to_reports(path):
             incident_date=row.get("incident_date"),
             report_details=row.get("report_details"),
             report_type=row.get("report_type"),
-            case_status=row.get("case_status"),
+            status=row.get("status"),
             contact_info=row.get("contact_info", None) if "contact_info" in row else None,
             severity=None,  
             is_fake=True   
@@ -41,3 +41,9 @@ def import_csv_to_reports(path):
 # import_csv_to_reports(r"D:\summer2025\Digitopea\DIGITOPIA\backend\crime_report_system\analytics\data\fake_reports.csv")
 
 
+from reports.models import Report
+
+# تحديث كل البلاغات اللي status فيها "تم الاغلاق" لتصبح "تم الإغلاق"
+updated_count = Report.objects.filter(status="تم الاغلاق").update(status="تم الإغلاق")
+
+print(f"✅ Done! Updated {updated_count} reports.")

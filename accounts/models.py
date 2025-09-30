@@ -33,8 +33,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('Viewer', 'Viewer'),
     ]
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
     ]
 
     email = models.EmailField(unique=True)

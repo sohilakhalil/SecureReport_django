@@ -127,6 +127,17 @@ if os.getenv("DATABASE_URL"):
         ssl_require=True
     )
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "SecureReport",
+        "USER": "postgres",
+        "PASSWORD": "Salma.76@2525",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

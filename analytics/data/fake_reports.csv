@@ -1,4 +1,4 @@
-id,location,location_link,incident_date,report_details,criminal_info,report_type,case_status,latitude,longitude
+id,location,location_link,incident_date,report_details,contact_info,report_type,status,latitude,longitude
 8270,"أسوان, مصر",https://www.google.com/maps/search/?api=1&query=%D8%A3%D8%B3%D9%88%D8%A7%D9%86%2C%20%D9%85%D8%B5%D8%B1,9/12/2020 0:00,تم الاعتداء علي بالضرب أمام أحد المحلات.,صح,اعتداء,تم الحل,24.091071,32.897306
 89266,"أسوان, مصر",https://www.google.com/maps/search/?api=1&query=%D8%A3%D8%B3%D9%88%D8%A7%D9%86%2C%20%D9%85%D8%B5%D8%B1,9/13/2020 0:00,أحد الأشخاص يهددني بنشر صور خاصة مقابل المال.,صح,ابتزاز,تم استلام البلاغ,24.091071,32.897306
 61009,"أسوان, مصر",https://www.google.com/maps/search/?api=1&query=%D8%A3%D8%B3%D9%88%D8%A7%D9%86%2C%20%D9%85%D8%B5%D8%B1,9/14/2020 0:00,أحد الأشخاص يهددني بنشر صور خاصة مقابل المال.,صح,ابتزاز,قيد المراجعة,24.091071,32.897306

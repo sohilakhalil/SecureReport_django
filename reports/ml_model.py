@@ -18,3 +18,20 @@ def predict_severity(text: str) -> str:
         outputs = model(**inputs)
         predicted_class_id = outputs.logits.argmax().item()
     return model.config.id2label[predicted_class_id]
+
+
+
+
+# from reports.models import Report
+# from reports.ml_model import predict_severity
+
+# # جلب كل البلاغات اللي severity فاضية
+# reports = Report.objects.filter(severity__isnull=True)
+
+# for report in reports:
+#     text = report.report_details  # نص البلاغ
+#     severity_pred = predict_severity(text)  # توقع مستوى الخطورة
+#     report.severity = severity_pred
+#     report.save(update_fields=["severity"])
+
+# print(f"✅ Done! Updated {reports.count()} reports with predicted severity.")

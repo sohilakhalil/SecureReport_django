@@ -49,7 +49,7 @@ class Report(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.tracking_code} - {self.case_status}"
+        return f"{self.tracking_code} - {self.status}"
     
     # class Meta:
     #     ordering = ["+created_at"]
