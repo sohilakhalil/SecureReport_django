@@ -127,16 +127,16 @@ if os.getenv("DATABASE_URL"):
         ssl_require=True
     )
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "railway", 
-        "USER": "postgres",
-        "PASSWORD": "rBIbkPIvkulZkNlzgMSmRomgrEteSveU",
-        "HOST": "nozomi.proxy.rlwy.net",
-        "PORT": "41446",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "railway", 
+#         "USER": "postgres",
+#         "PASSWORD": "rBIbkPIvkulZkNlzgMSmRomgrEteSveU",
+#         "HOST": "nozomi.proxy.rlwy.net",
+#         "PORT": "41446",
+#     }
+# }
 
 
 

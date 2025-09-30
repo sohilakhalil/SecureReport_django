@@ -48,7 +48,7 @@ class ReportListCreateView(generics.ListCreateAPIView):
         Anonymous: none.
         """
         user = self.request.user
-        qs = Report.objects.exclude(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:5]
+        qs = Report.objects.exclude(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')
 
         if not is_active_user(user):
             return Report.objects.none()  # inactive or anonymous users see nothing
@@ -71,7 +71,7 @@ class ReportArchiveListView(generics.ListAPIView):
         user = self.request.user
         if not is_active_user(user):
             return Report.objects.none()
-        return Report.objects.filter(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')[:5]
+        return Report.objects.filter(status__in=["تم الحل", "تم الإغلاق"]).order_by('id')
 
 # -----------------------------Retrieve, update, or delete a report----------------------------
 class ReportRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
